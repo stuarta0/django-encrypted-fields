@@ -13,7 +13,7 @@ try:
 except ImportError:
     from django.utils.encoding import smart_str as smart_text
 
-from keyczar import keyczar
+from .utils import read_crypto_key, symmetric_encrypt, symmetric_decrypt
 
 
 class EncryptedFieldException(Exception):
@@ -24,13 +24,15 @@ class EncryptedFieldException(Exception):
 # of the crypter object and allow for others to extend as needed.
 class KeyczarWrapper(object):
     def __init__(self, keyname, *args, **kwargs):
-        self.crypter = keyczar.Crypter.Read(keyname)
+        if os.path.isdir(keyname):
+            keyname = os.path.join(keyname, '1')
+        self.aes_key = read_crypto_key(keyname)
 
     def encrypt(self, cleartext):
-        return self.crypter.Encrypt(cleartext)
+        return symmetric_encrypt(self.aes_key, cleartext)
 
     def decrypt(self, ciphertext):
-        return self.crypter.Decrypt(ciphertext)
+        return symmetric_decrypt(self.aes_key, ciphertext)
 
 
 class EncryptedFieldMixin(object):
