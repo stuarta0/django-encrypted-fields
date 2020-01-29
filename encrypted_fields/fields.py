@@ -1,6 +1,5 @@
 
 import os
-import types
 
 import django
 from django.db import models
@@ -165,21 +164,17 @@ class EncryptedFieldMixin(object):
         return self.to_python(value)
 
     def to_python(self, value):
-        if value is None or not isinstance(value, types.StringTypes):
+        if value is None or not isinstance(value, str):
             return value
-
+        
         if self.prefix and value.startswith(self.prefix):
             value = value[len(self.prefix):]
 
         try:
             value = self.crypter().decrypt(value)
             value = value.decode('unicode_escape')
-        except keyczar.errors.KeyczarError:
+        except ValueError:
             pass
-        except UnicodeEncodeError:
-            pass
-        except binascii.Error:
-            pass        
 
         return super(EncryptedFieldMixin, self).to_python(value)
 
@@ -189,7 +184,7 @@ class EncryptedFieldMixin(object):
         if value is None or value == '' or self.decrypt_only:
             return value
 
-        if isinstance(value, types.StringTypes):
+        if isinstance(value, str):
             value = value.encode('unicode_escape')
             value = value.encode('ascii')
         else:
