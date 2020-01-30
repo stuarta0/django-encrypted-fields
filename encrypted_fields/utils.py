@@ -31,7 +31,7 @@ symmetric encryption / decryption, because it offers more robustness and safer d
 instead of SHA1, etc.).
 """
 
-from __future__ import absolute_import
+
 
 import os
 import json

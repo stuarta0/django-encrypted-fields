@@ -120,7 +120,7 @@ class FieldTest(TestCase):
         model.save()
 
         plaintext = self.get_db_value('decrypt_only', model.id)
-        self.assertEquals(plaintext, known_plaintext)
+        self.assertEqual(plaintext, known_plaintext)
 
     def test_decrypt_only_plaintext(self):
         known_plaintext = 'I am so plain and ordinary'
@@ -129,7 +129,7 @@ class FieldTest(TestCase):
         model.save()
 
         plaintext = self.get_db_value('decrypt_only', model.id)
-        self.assertEquals(plaintext, known_plaintext)
+        self.assertEqual(plaintext, known_plaintext)
 
     def test_char_field_encrypted(self):
         plaintext = 'Oh hi, test reader!'
@@ -147,7 +147,7 @@ class FieldTest(TestCase):
         self.assertEqual(fresh_model.char, plaintext)
 
     def test_unicode_encrypted(self):
-        plaintext = u'Oh hi, test reader! 🐱'
+        plaintext = 'Oh hi, test reader! 🐱'
 
         model = TestModel()
         model.char = plaintext
