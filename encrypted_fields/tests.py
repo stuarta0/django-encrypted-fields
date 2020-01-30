@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
+import binascii
 import unittest
+import codecs
 
 import django
 from django.conf import settings
 from django.db import models, connection
 from django.test import TestCase
 from django.utils import timezone
+
+from .utils import read_crypto_key, symmetric_encrypt, symmetric_decrypt
+from .keyczar_utils import Base64WSEncode, Base64WSDecode
 
 from .fields import (
     EncryptedCharField,
@@ -20,21 +26,27 @@ from .fields import (
     EncryptedBooleanField,
 )
 
-from keyczar import keyczar, readers
-
-
-# Test class that encapsulates some Keyczar functions.
-# Requirements are to implement __init__, decrypt(), encrypt()
 class TestCrypter(object):
     def __init__(self, keyname, *args, **kwargs):
-        self.keydata = readers.FileReader(keyname)
-        self.crypter = keyczar.Crypter(self.keydata)
+        if os.path.isdir(keyname):
+            keyname = os.path.join(keyname, '1')
+        self.aes_key = read_crypto_key(keyname)
 
     def encrypt(self, cleartext):
-        return self.crypter.Encrypt(cleartext)
+        # reverse the decrypt process
+        hex_bytes = symmetric_encrypt(self.aes_key, cleartext)
+        data_bytes = binascii.unhexlify(hex_bytes)
+        ciphertext = Base64WSEncode(data_bytes)
+        return ciphertext.decode('ascii')
 
     def decrypt(self, ciphertext):
-        return self.crypter.Decrypt(ciphertext)
+        # ciphertext as string
+        # use keyczar.util.Base64WSDecode as per original
+        # hexlify to suit utils.symmetric_decrypt
+        data_bytes = Base64WSDecode(ciphertext)
+        hex_bytes = binascii.hexlify(data_bytes)
+        plaintext = symmetric_decrypt(self.aes_key, hex_bytes)
+        return plaintext
 
 
 class TestModel(models.Model):
@@ -169,6 +181,7 @@ class FieldTest(TestCase):
         model.short_char = plaintext
         self.assertRaises(ValueError, model.save)
 
+    # FAILS
     def test_text_field_encrypted(self):
         plaintext = 'Oh hi, test reader!' * 10
 

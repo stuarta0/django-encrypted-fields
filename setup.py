@@ -18,16 +18,16 @@ setup(
     name='django-encrypted-fields',
     description=(
         'This is a collection of Django Model Field classes '
-        'that are encrypted using Keyczar.'
+        'that are encrypted using a Keyczar compatibility layer to the cryptography module.'
     ),
-    url='http://github.com/defrex/django-encrypted-fields/',
+    url='http://github.com/stuarta0/django-encrypted-fields/',
     license='BSD',
-    author='Aron Jones',
-    author_email='aron.jones@gmail.com',
+    author='Stuart Attenborrow',
+    author_email='stuarta0@gmail.com',
     packages=['encrypted_fields'],
     version=version,
     install_requires=[
         'Django>=1.4',
-        'python-keyczar>=0.71c',
+        'cryptography>=2.8',
     ],
 )
