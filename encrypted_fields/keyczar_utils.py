@@ -43,7 +43,7 @@ def Base64WSDecode(s):
   elif d == 3:
     b += b"="
   try:
-    return base64.urlsafe_b64decode(s)
+    return base64.urlsafe_b64decode(b)
   except TypeError:
     # Decoding raises TypeError if s contains invalid characters.
     raise ValueError('Base64DecodingError')
