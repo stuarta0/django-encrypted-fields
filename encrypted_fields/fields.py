@@ -1,5 +1,6 @@
 
 import os
+import binascii
 
 import django
 from django.db import models
@@ -13,6 +14,7 @@ except ImportError:
     from django.utils.encoding import smart_str as smart_text
 
 from .utils import read_crypto_key, symmetric_encrypt, symmetric_decrypt
+from .keyczar_utils import Base64WSEncode, Base64WSDecode
 
 
 class EncryptedFieldException(Exception):
@@ -31,7 +33,12 @@ class KeyczarWrapper(object):
         return symmetric_encrypt(self.aes_key, cleartext)
 
     def decrypt(self, ciphertext):
-        return symmetric_decrypt(self.aes_key, ciphertext)
+        # ciphertext as string
+        # use keyczar.util.Base64WSDecode as per original
+        # hexlify to suit utils.symmetric_decrypt
+        data_bytes = Base64WSDecode(ciphertext)
+        hex_bytes = binascii.hexlify(data_bytes)
+        return symmetric_decrypt(self.aes_key, hex_bytes)
 
 
 class EncryptedFieldMixin(object):
@@ -172,8 +179,8 @@ class EncryptedFieldMixin(object):
 
         try:
             value = self.crypter().decrypt(value)
-            value = value.decode('unicode_escape')
-        except ValueError:
+        except ValueError as ex:
+            print(ex)
             pass
 
         return super(EncryptedFieldMixin, self).to_python(value)
@@ -186,11 +193,10 @@ class EncryptedFieldMixin(object):
 
         if isinstance(value, str):
             value = value.encode('unicode_escape')
-            value = value.encode('ascii')
         else:
-            value = str(value)
+            value = str(value).encode('unicode_escape')
 
-        return self.prefix + self.crypter().encrypt(value)
+        return self.prefix + self.crypter().encrypt(value).decode('ascii')
 
     def get_db_prep_value(self, value, connection, prepared=False):
         if not prepared:
