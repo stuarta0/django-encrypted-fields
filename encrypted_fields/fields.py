@@ -30,7 +30,11 @@ class KeyczarWrapper(object):
         self.aes_key = read_crypto_key(keyname)
 
     def encrypt(self, cleartext):
-        return symmetric_encrypt(self.aes_key, cleartext)
+        # reverse the decrypt process
+        hex_bytes = symmetric_encrypt(self.aes_key, cleartext)
+        data_bytes = binascii.unhexlify(hex_bytes)
+        ciphertext = Base64WSEncode(data_bytes)
+        return ciphertext
 
     def decrypt(self, ciphertext):
         # ciphertext as string
