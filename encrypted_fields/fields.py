@@ -183,8 +183,7 @@ class EncryptedFieldMixin(object):
 
         try:
             value = self.crypter().decrypt(value)
-        except ValueError as ex:
-            print(ex)
+        except ValueError:
             pass
 
         return super(EncryptedFieldMixin, self).to_python(value)
